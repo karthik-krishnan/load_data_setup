@@ -1,0 +1,5 @@
+app_base_url: https://dev.xkit.co
+ldap_host: 207.20.44.161
+ldap_user: cn=Manager,dc=localhost,dc=com
+ldap_password: ldap
+base_dn: dc=localhost, dc=com

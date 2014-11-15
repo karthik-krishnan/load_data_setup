@@ -1,0 +1,30 @@
+#!/usr/bin/ruby
+
+require 'fileutils'
+require 'ostruct'
+require 'logger'
+
+require "#{File.dirname(__FILE__)}/common/environment"
+require "#{File.dirname(__FILE__)}/common/data_setup_base"
+require "#{File.dirname(__FILE__)}/common/template"
+
+$setup = OpenStruct.new
+
+USERS_COUNT = (ENV['USER_COUNT'] || 1000).to_i
+ENVIRONMENT = ENV['ENV'] || 'dev'
+DEFAULT_CONCURRENT_THREADS = 5
+
+environment = Environment.load(ENVIRONMENT)
+
+Dir['setup/*.rb'].each {|file|
+	require "#{File.dirname(__FILE__)}/#{file}"
+	instance_name = File.basename(file, '.rb')
+	klass = Object.const_get(instance_name.split('_').map(&:capitalize).join)
+	klass.send(:include, DataSetupBase)
+	$setup.send("#{instance_name}=".to_sym, klass.new(environment, USERS_COUNT))
+}
+
+$LOGGER = Logger.new(STDOUT)
+$LOGGER.level = Logger::INFO
+
+$setup.sample_data_setup.seed_data
